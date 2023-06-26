@@ -1,10 +1,11 @@
 ﻿using GorillaExtensions;
+using GorillaLocomotion;
 using GorillaLocomotion.Swimming;
 using GorillaNetworking;
 using HarmonyLib;
-using SlipperyWater;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace SlipperyWater.Scripts
@@ -24,6 +25,10 @@ namespace SlipperyWater.Scripts
 
         // Audio
         private static GameObject audioDirectory;
+
+        // Constants
+        private const float waterScale = 0.25f;
+        private const float waterAlpha = 0.75f;
 
         public static void Initalize()
         {
@@ -45,6 +50,7 @@ namespace SlipperyWater.Scripts
                     if (volumeRenderer.TryGetComponent(out WaterSurfaceMaterialController streamRendererController))
                     {
                         streamRendererController.ScrollY = 0.5f;
+                        streamRendererController.Scale = 1f;
                         var controllerRenderer = AccessTools.Field(streamRendererController.GetType(), "renderer").GetValue(streamRendererController);
                         if (controllerRenderer != null)
                         {
@@ -85,6 +91,7 @@ namespace SlipperyWater.Scripts
                     if (waterStreamRenderer.TryGetComponent(out WaterSurfaceMaterialController streamRendererController))
                     {
                         streamRendererController.ScrollY = 0.5f;
+                        streamRendererController.Scale = 1f;
                         var controllerRenderer = AccessTools.Field(streamRendererController.GetType(), "renderer").GetValue(streamRendererController);
                         if (controllerRenderer != null)
                         {
@@ -104,6 +111,7 @@ namespace SlipperyWater.Scripts
                     if (waterSurfaceRenderer.TryGetComponent(out WaterSurfaceMaterialController streamRendererController))
                     {
                         streamRendererController.ScrollY = 0.5f;
+                        streamRendererController.Scale = 1f;
                         var controllerRenderer = AccessTools.Field(streamRendererController.GetType(), "renderer").GetValue(streamRendererController);
                         if (controllerRenderer != null)
                         {
@@ -125,7 +133,7 @@ namespace SlipperyWater.Scripts
             audioDirectory.GetComponentsInChildren<AudioSource>(true).ToList().ForEach(a => a.mute = false);
         }
 
-        public static void DisableWater()
+        public static async void DisableWater()
         {
             var waterVolumes = GameObject.Find("Level").GetComponentsInChildren<WaterVolume>(true);
             foreach (var waterVolume in waterVolumes)
@@ -136,10 +144,11 @@ namespace SlipperyWater.Scripts
                     materialTextDict.AddOrUpdate(streamRendererMaterial, streamRendererMaterial.mainTexture as Texture2D);
                     streamRendererMaterial.mainTexture = Plugin.IceTex;
                     materialColourDict.AddOrUpdate(streamRendererMaterial, streamRendererMaterial.color);
-                    streamRendererMaterial.color = new Color(0.9f, 0.9f, 0.9f, streamRendererMaterial.color.a);
+                    streamRendererMaterial.color = new Color(0.9f, 0.9f, 0.9f, waterAlpha);
                     if (volumeRenderer.TryGetComponent(out WaterSurfaceMaterialController streamRendererController))
                     {
                         streamRendererController.ScrollY = 0f;
+                        streamRendererController.Scale = waterScale;
                         var controllerRenderer = AccessTools.Field(streamRendererController.GetType(), "renderer").GetValue(streamRendererController);
                         if (controllerRenderer != null)
                         {
@@ -150,7 +159,7 @@ namespace SlipperyWater.Scripts
                     else
                     {
                         materialVectorDict.Add(volumeRenderer.material, volumeRenderer.material.GetVector("_ScrollSpeedAndScale"));
-                        volumeRenderer.material.SetVector("_ScrollSpeedAndScale", Vector4.zero.WithZ(1f));
+                        volumeRenderer.material.SetVector("_ScrollSpeedAndScale", Vector4.zero.WithZ(waterScale));
                     }
                 }
                 foreach (var volumeMaterialController in waterVolume.GetComponentsInChildren<WaterSurfaceMaterialController>(true))
@@ -187,10 +196,11 @@ namespace SlipperyWater.Scripts
                     materialTextDict.AddOrUpdate(streamRendererMaterial, streamRendererMaterial.mainTexture as Texture2D);
                     streamRendererMaterial.mainTexture = Plugin.IceTex;
                     materialColourDict.AddOrUpdate(streamRendererMaterial, streamRendererMaterial.color);
-                    streamRendererMaterial.color = new Color(0.9f, 0.9f, 0.9f, streamRendererMaterial.color.a);
+                    streamRendererMaterial.color = new Color(0.9f, 0.9f, 0.9f, waterAlpha);
                     if (waterStreamRenderer.TryGetComponent(out WaterSurfaceMaterialController streamRendererController))
                     {
                         streamRendererController.ScrollY = 0f;
+                        streamRendererController.Scale = waterScale;
                         var controllerRenderer = AccessTools.Field(streamRendererController.GetType(), "renderer").GetValue(streamRendererController);
                         if (controllerRenderer != null)
                         {
@@ -201,7 +211,7 @@ namespace SlipperyWater.Scripts
                     else
                     {
                         materialVectorDict.Add(waterStreamRenderer.material, waterStreamRenderer.material.GetVector("_ScrollSpeedAndScale"));
-                        waterStreamRenderer.material.SetVector("_ScrollSpeedAndScale", Vector4.zero.WithZ(1f));
+                        waterStreamRenderer.material.SetVector("_ScrollSpeedAndScale", Vector4.zero.WithZ(waterScale));
                     }
                 }
 
@@ -212,10 +222,11 @@ namespace SlipperyWater.Scripts
                     streamRendererMaterial.mainTexture = Plugin.IceTex;
                     streamRendererMaterial.mainTextureScale *= 0.7f;
                     materialColourDict.AddOrUpdate(streamRendererMaterial, streamRendererMaterial.color);
-                    streamRendererMaterial.color = new Color(0.9f, 0.9f, 0.9f, streamRendererMaterial.color.a);
+                    streamRendererMaterial.color = new Color(0.9f, 0.9f, 0.9f, waterAlpha);
                     if (waterSurfaceRenderer.TryGetComponent(out WaterSurfaceMaterialController streamRendererController))
                     {
                         streamRendererController.ScrollY = 0f;
+                        streamRendererController.Scale = waterScale;
                         var controllerRenderer = AccessTools.Field(streamRendererController.GetType(), "renderer").GetValue(streamRendererController);
                         if (controllerRenderer != null)
                         {
@@ -226,7 +237,7 @@ namespace SlipperyWater.Scripts
                     else
                     {
                         materialVectorDict.Add(waterSurfaceRenderer.material, waterSurfaceRenderer.material.GetVector("_ScrollSpeedAndScale"));
-                        waterSurfaceRenderer.material.SetVector("_ScrollSpeedAndScale", Vector4.zero.WithZ(1f));
+                        waterSurfaceRenderer.material.SetVector("_ScrollSpeedAndScale", Vector4.zero.WithZ(waterScale));
                     }
                 }
             }
@@ -245,6 +256,19 @@ namespace SlipperyWater.Scripts
                 a.material = physicMaterial;
             });
             audioDirectory.GetComponentsInChildren<AudioSource>(true).ToList().ForEach(a => a.mute = true);
+
+            await Task.Delay(400);
+            var bodyColliderBounds = Player.Instance.bodyCollider.bounds;
+            var boxColliderArray = waterSurfaces.Where(a => a.GetComponent<BoxCollider>() != null).ToArray();
+            foreach(var genericCollider in boxColliderArray)
+            {
+                var boxCollider = genericCollider.GetComponent<BoxCollider>();
+                if (bodyColliderBounds.Intersects(boxCollider.bounds))
+                {
+                    PlayerUtils.Teleport(WaterPatches.LastPosition);
+                    break;
+                }
+            }
         }
     }
 }

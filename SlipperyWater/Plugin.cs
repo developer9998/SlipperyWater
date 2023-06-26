@@ -13,12 +13,14 @@ namespace SlipperyWater
     [BepInPlugin(PluginInfo.GUID, PluginInfo.Name, PluginInfo.Version)]
     public class Plugin : BaseUnityPlugin
     {
-        private static Harmony WaterPatch;
+        private bool InRoom;
+        private Harmony WaterPatch;
+
         public static Texture2D IceTex { get; private set; }
 
         public async void Start()
         {
-            Stream manifestResourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"WaterWalker.Resources.waterTexA.png");
+            Stream manifestResourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"SlipperyWater.Resources.waterTexA.png");
             byte[] bytes = new byte[manifestResourceStream.Length];
             await manifestResourceStream.ReadAsync(bytes, 0, bytes.Length);
 
@@ -36,12 +38,32 @@ namespace SlipperyWater
             WaterPatch.PatchAll(Assembly.GetExecutingAssembly());
         }
 
+        public void OnEnable()
+        {
+            if (InRoom && WaterMain.Initalized)
+                WaterMain.DisableWater();
+        }
+
+        public void OnDisable()
+        {
+            if (WaterMain.Initalized)
+                WaterMain.EnableWater();
+        }
+
         [ModdedGamemodeJoin]
         public void OnJoin()
-            => WaterMain.DisableWater();
+        {
+            InRoom = true;
+            if (enabled && WaterMain.Initalized)
+                WaterMain.DisableWater();
+        }
 
         [ModdedGamemodeLeave]
         public void OnLeave()
-            => WaterMain.EnableWater();
+        {
+            InRoom = false;
+            if (WaterMain.Initalized)
+                WaterMain.EnableWater();
+        }
     }
 }
